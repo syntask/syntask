@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Syntask</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    @font-face {
+      font-family: 'JetBrains Mono';
+      src: url('assets/JetBrainsMono-Regular.woff2') format('woff2');
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: 'JetBrains Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    h1 {
+      font-size: 3em;
+      margin: 0;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: block;
+      opacity: 1;
+      z-index: 0;
+      animation: fadeInLinear 3s forwards;
+    }
+    .content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #fff;
+      z-index: 10;
+    }
+    .social-icons {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 10;
+      animation: fadeIn 2s forwards;
+    }
+    .social-icons a {
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 1.2rem;
+      transition: color 0.3s ease;
+    }
+    .social-icons a:hover {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .social-icons a:visited {
+      color: rgba(255, 255, 255, 0.2);
+    }
+    .blur-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backdrop-filter: blur(50px);
+      z-index: 1;
+    }
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 300px;
+      opacity: 0.5;
+      mix-blend-mode: overlay;
+      z-index: 5;
+    }
+    .svg-button {
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      animation: fadeIn 2s forwards;
+    }
+    .svg-button .hover {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .svg-button .default {
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+    .svg-button:hover .hover {
+      opacity: 1;
+    }
+    .svg-button:hover .default {
+      opacity: 0;
+    }
+    .caret {
+      animation: blink 1.5s infinite;
+    }
+    @keyframes blink {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0;
+      }
+    }
+    #title {
+      animation: titleAnimation 1.2s forwards;
+    }
+    .subheading {
+      animation: fadeIn 2s forwards;
+    }
+    @keyframes titleAnimation {
+      0% {
+        transform: translateY(1.2em);
+      }
+      50% {
+        transform: translateY(1.2em);
+      }
+      100% {
+        transform: translateY(0);
+      }
+    }
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+      }
+      35% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+    @keyframes fadeInLinear {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="glCanvas"></canvas>
+  <div class="blur-overlay"></div>
+  <div class="grain-overlay"></div>
+  <div class="content">
+    <h1 id="title"><span id="titleText">Syntask</span><span class="caret">_</span></h1>
+    <p class="subheading">Freelance web developer</p>
+    <svg class="svg-button" width="160" height="40" viewBox="0 0 160 40" 
+         xmlns="http://www.w3.org/2000/svg" role="button" tabindex="0" 
+         aria-roledescription="button" aria-label="Inquire">
+      <defs>
+        <mask id="text-mask">
+          <rect width="100%" height="100%" fill="white"/>
+          <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+                fill="black" font-size="16" font-family="JetBrains Mono">
+            Inquire
+          </text>
+        </mask>
+      </defs>
+      <g class="default">
+        <rect width="160" height="40" rx="20" fill="white" mask="url(#text-mask)"/>
+      </g>
+      <g class="hover">
+        <rect x="1" y="1" width="158" height="38" rx="19" fill="none" stroke="white" stroke-width="2"/>
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+              fill="white" font-size="16" font-family="JetBrains Mono">
+          Inquire
+        </text>
+      </g>
+    </svg>
+  </div>
+  <div class="social-icons">
+    <a href="https://example.com" class="social-icon">
+      <i class="bi-github"></i>
+    </a>
+    <a href="https://example.com" class="social-icon">
+      <i class="bi-linkedin"></i>
+    </a>
+    <a href="https://example.com" class="social-icon">
+      <i class="bi-twitter"></i>
+    </a>
+  </div>
+  <script>
+    // Title animation
+    const title = document.getElementById('titleText');
+    const titleText = title.innerText;
+    title.innerText = '';
+    let i = 0;
+    function typeWriter() {
+      if (i < titleText.length) {
+        title.innerText += titleText.charAt(i);
+        i++;
+        setTimeout(typeWriter, 50);
+      }
+    }
+    typeWriter();
+
+    (function(){
+      // Config
+      const numOrbs = 10; // initial orb count
+      const colorsHex = ['#0090F1', '#0090F1', '#8F6FF4', '#CF5ABC', '#F34C59', '#F55924', '#F55924'];
+      const orbMinOpacity = 0.05;
+      const orbMaxOpacity = 0.40;
+      const orbMinSize = 2000;
+      const orbMaxSize = 4000;
+      const orbMinSpeed = 20;
+      const orbMaxSpeed = 40;
+      const orbMinLife = 15000;
+      const orbMaxLife = 30000;
+      const orbFadeDuration = 5000;
+
+      const grainAmount = 0.6;
+      const postProcessingBlur = 100;
+
+      const grainOverlay = document.querySelector('.grain-overlay');
+      grainOverlay.style.opacity = grainAmount;
+
+      const blurOverlay = document.querySelector('.blur-overlay');
+      blurOverlay.style.backdropFilter = `blur(${postProcessingBlur}px)`;
+
+      const canvas = document.getElementById('glCanvas');
+      const gl = canvas.getContext('webgl2', { antialias: false, alpha: false });
+      if (!gl) {
+        alert("WebGL2 not supported");
+        return;
+      }
+      
+      const halfFloatExt = gl.getExtension('EXT_color_buffer_half_float');
+      if (!halfFloatExt) {
+        console.warn("EXT_color_buffer_half_float not available");
+      }
+      
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+      gl.clearColor(0, 0, 0, 0);
+      
+      // ---------------------------------------
+      // Create a high precision offscreen FBO
+      // ---------------------------------------
+      let fbo, fboTexture;
+      function createHighPrecisionFramebuffer() {
+        if (fbo) {
+          gl.deleteFramebuffer(fbo);
+          gl.deleteTexture(fboTexture);
+        }
+        fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        fboTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, fboTexture);
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA16F,
+          canvas.width,
+          canvas.height,
+          0,
+          gl.RGBA,
+          gl.HALF_FLOAT,
+          null
+        );
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.framebufferTexture2D(
+          gl.FRAMEBUFFER,
+          gl.COLOR_ATTACHMENT0,
+          gl.TEXTURE_2D,
+          fboTexture,
+          0
+        );
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+          console.error("High precision framebuffer not complete!");
+        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      }
+      
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        createHighPrecisionFramebuffer();
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      
+      // ------------------------------------------------------
+      // Shader and program for drawing orbs (the scene)
+      // ------------------------------------------------------
+      const vsSource = `#version 300 es
+        in vec2 a_center;
+        in vec2 a_offset;
+        in float a_size;
+        in vec3 a_color;
+        in float a_opacity;
+        uniform vec2 u_resolution;
+        out vec2 v_uv;
+        out vec3 v_color;
+        out float v_opacity;
+        void main(){
+            vec2 halfSize = vec2(a_size * 0.5);
+            vec2 pos = a_center + a_offset * halfSize;
+            vec2 clip = (pos / u_resolution) * 2.0 - 1.0;
+            clip.y = -clip.y;
+            gl_Position = vec4(clip, 0.0, 1.0);
+            v_uv = a_offset * 0.5 + 0.5;
+            v_color = a_color;
+            v_opacity = a_opacity;
+        }
+      `;
+      
+      const fsSource = `#version 300 es
+        precision highp float;
+        in vec2 v_uv;
+        in vec3 v_color;
+        in float v_opacity;
+        out vec4 outColor;
+        void main(){
+            float dist = distance(v_uv, vec2(0.5));
+            float radialAlpha = smoothstep(0.5, 0.0, dist);
+            if(radialAlpha < 0.01) discard;
+            outColor = vec4(v_color, radialAlpha * v_opacity);
+        }
+      `;
+      
+      function compileShader(type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+          gl.deleteShader(shader);
+          return null;
+        }
+        return shader;
+      }
+      const vertexShader = compileShader(gl.VERTEX_SHADER, vsSource);
+      const fragmentShader = compileShader(gl.FRAGMENT_SHADER, fsSource);
+      
+      const program = gl.createProgram();
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        console.error('Shader program failed to link:', gl.getProgramInfoLog(program));
+        return;
+      }
+      gl.useProgram(program);
+      
+      const aCenterLoc = gl.getAttribLocation(program, "a_center");
+      const aOffsetLoc = gl.getAttribLocation(program, "a_offset");
+      const aSizeLoc = gl.getAttribLocation(program, "a_size");
+      const aColorLoc = gl.getAttribLocation(program, "a_color");
+      const aOpacityLoc = gl.getAttribLocation(program, "a_opacity");
+      const uResolutionLoc = gl.getUniformLocation(program, "u_resolution");
+      
+      // ------------------------------------------------------
+      // Setup buffers for orbs (scene geometry)
+      // ------------------------------------------------------
+      const centerBuffer = gl.createBuffer();
+      const sizeBuffer = gl.createBuffer();
+      const colorBuffer = gl.createBuffer();
+      const opacityBuffer = gl.createBuffer();
+      const offsetBuffer = gl.createBuffer();
+      const indexBuffer = gl.createBuffer();
+      
+      // ------------------------------------------------------
+      // Orb data and helper functions.
+      // ------------------------------------------------------
+      function hexToRgb(hex) {
+        hex = hex.replace('#','');
+        const bigint = parseInt(hex, 16);
+        const r = ((bigint >> 16) & 255) / 255;
+        const g = ((bigint >> 8) & 255) / 255;
+        const b = (bigint & 255) / 255;
+        return [r, g, b];
+      }
+      const colorsRGB = colorsHex.map(hex => hexToRgb(hex));
+      
+      const orbs = [];
+      function createOrb() {
+        const orb = {};
+        orb.x = Math.random() * canvas.width;
+        orb.y = Math.random() * canvas.height;
+        const angle = Math.random() * Math.PI * 2;
+        orb.speed = Math.random() * (orbMaxSpeed - orbMinSpeed) + orbMinSpeed;
+        orb.vx = Math.cos(angle) * orb.speed;
+        orb.vy = Math.sin(angle) * orb.speed;
+        orb.size = Math.random() * (orbMaxSize - orbMinSize) + orbMinSize;
+        orb.life = 0;
+        orb.maxLife = Math.random() * (orbMaxLife - orbMinLife) + orbMinLife;
+        orb.color = colorsRGB[Math.floor(Math.random() * colorsRGB.length)];
+        orb.state = 'active';
+        const relativeSize = (orb.size - orbMinSize) / (orbMaxSize - orbMinSize);
+        orb.targetOpacity = (orbMaxOpacity - orbMinOpacity) * (1 - relativeSize) + orbMinOpacity;
+        if (initialBatch) {
+          orb.fadeInDuration = 0;
+          orb.fadeOutDuration = orbFadeDuration;
+        } else {
+          orb.fadeInDuration = orbFadeDuration;
+          orb.fadeOutDuration = orbFadeDuration;
+        }
+        return orb;
+      }
+      let initialBatch = true;
+      for (let i = 0; i < numOrbs; i++) {
+        orbs.push(createOrb());
+      }
+      initialBatch = false;
+      
+      // ------------------------------------------------------
+      // Create a blit shader program for copying the FBO to the canvas.
+      // ------------------------------------------------------
+      const blitVsSource = `#version 300 es
+        precision highp float;
+        in vec2 a_position;
+        out vec2 v_uv;
+        void main(){
+          v_uv = (a_position + 1.0) * 0.5;
+          gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+      `;
+      const blitFsSource = `#version 300 es
+        precision highp float;
+        in vec2 v_uv;
+        uniform sampler2D u_texture;
+        out vec4 outColor;
+        void main(){
+          outColor = texture(u_texture, v_uv);
+        }
+      `;
+      
+      const blitVertexShader = compileShader(gl.VERTEX_SHADER, blitVsSource);
+      const blitFragmentShader = compileShader(gl.FRAGMENT_SHADER, blitFsSource);
+      const blitProgram = gl.createProgram();
+      gl.attachShader(blitProgram, blitVertexShader);
+      gl.attachShader(blitProgram, blitFragmentShader);
+      gl.linkProgram(blitProgram);
+      if (!gl.getProgramParameter(blitProgram, gl.LINK_STATUS)) {
+        console.error('Blit shader program failed to link:', gl.getProgramInfoLog(blitProgram));
+        return;
+      }
+      const aPositionLoc = gl.getAttribLocation(blitProgram, "a_position");
+      const uTextureLoc = gl.getUniformLocation(blitProgram, "u_texture");
+      
+      const blitQuadBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, blitQuadBuffer);
+      const quadVertices = new Float32Array([
+        -1, -1,
+         1, -1,
+        -1,  1,
+        -1,  1,
+         1, -1,
+         1,  1
+      ]);
+      gl.bufferData(gl.ARRAY_BUFFER, quadVertices, gl.STATIC_DRAW);
+      
+      // ------------------------------------------------------
+      // Render loop.
+      // ------------------------------------------------------
+      let lastTime = performance.now();
+      function render() {
+        const now = performance.now();
+        const delta = now - lastTime;
+        lastTime = now;
+        
+        // Update orb positions and life.
+        for (let i = 0; i < orbs.length; i++) {
+          const orb = orbs[i];
+          orb.x += orb.vx * (delta / 1000);
+          orb.y += orb.vy * (delta / 1000);
+          orb.life += delta;
+          if (orb.life > orb.maxLife - orb.fadeOutDuration*1.5 && orb.state === 'active') {
+            orbs[i].state = 'inactive';
+            console.log('Orb fading out. Creating a new one.');
+            orbs.push(createOrb());
+            console.log(orbs.length);
+          } else if (
+            orb.life > orb.maxLife
+          ) {
+            console.log('Orb expired. Removing.');
+            orbs.splice(i, 1);
+            i--;
+          }else if (
+            orb.x < -orb.size || orb.x > canvas.width + orb.size ||
+            orb.y < -orb.size || orb.y > canvas.height + orb.size
+          ) {
+            console.log('Orb out of bounds. Removing.');
+            orbs.splice(i, 1);
+            i--;
+          } else if (
+            (orb.x < 0 || orb.x > canvas.width ||
+             orb.y < 0 || orb.y > canvas.height) && orb.state === 'active'
+          ) {
+            orbs[i].state = 'inactive';
+            console.log('Orb leaving bounds. Creating a new one.');
+            orbs.push(createOrb());
+            console.log(orbs.length);
+          }
+        }
+        
+        const currentNumOrbs = orbs.length;
+        const numVertices = currentNumOrbs * 4;
+        const centers = new Float32Array(currentNumOrbs * 4 * 2);
+        const sizes = new Float32Array(currentNumOrbs * 4);
+        const colors = new Float32Array(currentNumOrbs * 4 * 3);
+        const opacities = new Float32Array(currentNumOrbs * 4);
+        
+        const offsetsData = new Float32Array(currentNumOrbs * 4 * 2);
+        const singleOffsets = [-1, -1,  1, -1,  1, 1,  -1, 1];
+        for (let i = 0; i < currentNumOrbs; i++) {
+          offsetsData.set(singleOffsets, i * 8);
+        }
+        
+        let indices = [];
+        for (let i = 0; i < currentNumOrbs; i++) {
+          const baseIndex = i * 4;
+          indices.push(baseIndex, baseIndex + 1, baseIndex + 2,
+                       baseIndex, baseIndex + 2, baseIndex + 3);
+        }
+        
+        for (let i = 0; i < currentNumOrbs; i++) {
+          let fadeAlpha = orbs[i].targetOpacity;
+          if (orbs[i].life < orbs[i].fadeInDuration) {
+            fadeAlpha = (orbs[i].life / orbs[i].fadeInDuration) * orbs[i].targetOpacity;
+          } else if (orbs[i].life > orbs[i].maxLife - orbs[i].fadeOutDuration) {
+            fadeAlpha = ((orbs[i].maxLife - orbs[i].life) / orbs[i].fadeOutDuration) * orbs[i].targetOpacity;
+          }
+          for (let j = 0; j < 4; j++) {
+            centers[i * 8 + j * 2] = orbs[i].x;
+            centers[i * 8 + j * 2 + 1] = orbs[i].y;
+            sizes[i * 4 + j] = orbs[i].size;
+            colors[i * 12 + j * 3] = orbs[i].color[0];
+            colors[i * 12 + j * 3 + 1] = orbs[i].color[1];
+            colors[i * 12 + j * 3 + 2] = orbs[i].color[2];
+            opacities[i * 4 + j] = fadeAlpha;
+          }
+        }
+        
+        gl.useProgram(program);
+        gl.uniform2f(uResolutionLoc, canvas.width, canvas.height);
+        
+        // Render Pass 1: Draw the scene into the FBO.
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, centerBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, centers, gl.DYNAMIC_DRAW);
+        gl.enableVertexAttribArray(aCenterLoc);
+        gl.vertexAttribPointer(aCenterLoc, 2, gl.FLOAT, false, 0, 0);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, offsetBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, offsetsData, gl.DYNAMIC_DRAW);
+        gl.enableVertexAttribArray(aOffsetLoc);
+        gl.vertexAttribPointer(aOffsetLoc, 2, gl.FLOAT, false, 0, 0);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, sizes, gl.DYNAMIC_DRAW);
+        gl.enableVertexAttribArray(aSizeLoc);
+        gl.vertexAttribPointer(aSizeLoc, 1, gl.FLOAT, false, 0, 0);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, colors, gl.DYNAMIC_DRAW);
+        gl.enableVertexAttribArray(aColorLoc);
+        gl.vertexAttribPointer(aColorLoc, 3, gl.FLOAT, false, 0, 0);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, opacityBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, opacities, gl.DYNAMIC_DRAW);
+        gl.enableVertexAttribArray(aOpacityLoc);
+        gl.vertexAttribPointer(aOpacityLoc, 1, gl.FLOAT, false, 0, 0);
+        
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
+        gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+        
+        // Render Pass 2: Blit the FBO to the default framebuffer.
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        
+        gl.useProgram(blitProgram);
+        gl.bindBuffer(gl.ARRAY_BUFFER, blitQuadBuffer);
+        gl.enableVertexAttribArray(aPositionLoc);
+        gl.vertexAttribPointer(aPositionLoc, 2, gl.FLOAT, false, 0, 0);
+        
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, fboTexture);
+        gl.uniform1i(uTextureLoc, 0);
+        
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        
+        requestAnimationFrame(render);
+      }
+      render();
+    })();
+  </script>
+</body>
+</html>
